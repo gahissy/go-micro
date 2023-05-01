@@ -5,18 +5,27 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 	"os"
 	"time"
 )
 
-func New(appVersion string) *App {
+func New(name string, version string) *App {
 	_ = godotenv.Load()
+
+	env := &Env{
+		App: &AppInfo{
+			Name:    name,
+			Version: version,
+		},
+	}
+
 	dsn := os.Getenv("SENTRY_DSN")
 	if dsn != "" {
 		log.Infof("SENTRY_DSN detected, configuring")
-		initSentry(dsn, appVersion)
+		initSentry(dsn, env.App)
 	}
-	env := &Env{}
+
 	cron := gocron.NewScheduler(time.UTC)
 	router := NewEchoRouter(env)
 
@@ -27,6 +36,10 @@ func New(appVersion string) *App {
 	}
 
 	return app
+}
+
+func (a *App) Handler() http.Handler {
+	return a.router.Handler()
 }
 
 func (a *App) Start(port ...string) {

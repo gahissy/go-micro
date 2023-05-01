@@ -1,9 +1,12 @@
 package micro
 
-import "github.com/gahissy/go-micro/h"
+import (
+	"github.com/gahissy/go-micro/h"
+	"net/http"
+)
 
 type RouteGroup interface {
-	GET(path string, cb func(ctx RequestContext) (Any, error))
+	GET(path string, cb func(ctx RequestContext) (interface{}, error))
 	POST(path string, cb func(ctx RequestContext) (Any, error))
 	PATCH(path string, cb func(ctx RequestContext) (Any, error))
 	PUT(path string, cb func(ctx RequestContext) (Any, error))
@@ -14,6 +17,7 @@ type Router interface {
 	RouteGroup
 	Group(path string, roles ...string) RouteGroup
 	Start(port ...string)
+	Handler() http.Handler
 }
 
 type RequestContext interface {
@@ -23,7 +27,7 @@ type RequestContext interface {
 	CheckPermission(roles ...string)
 }
 
-func Handle0(cb func(ctx *Ctx) (Any, error)) func(RequestContext) (Any, error) {
+func Handle0(cb func(ctx *Ctx) (interface{}, error)) func(RequestContext) (interface{}, error) {
 	return Handle1("", cb)
 }
 

@@ -88,6 +88,10 @@ func NewEchoRouter(env *Env) Router {
 	return &routerImpl{engine: e}
 }
 
+func (r *routerImpl) Handler() http.Handler {
+	return r.engine
+}
+
 func (r *routerImpl) Start(port ...string) {
 	r.engine.GET("/swagger/*", echoSwagger.WrapHandler)
 	lport := ""

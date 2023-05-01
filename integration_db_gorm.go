@@ -1,7 +1,9 @@
 package micro
 
 import (
+	"github.com/gahissy/go-micro/h"
 	"github.com/pressly/goose/v3"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
@@ -98,6 +100,9 @@ func (r *GormDBAdapter) UpdateColumn(model interface{}, column string, value int
 func useGorm(config DatabaseConfig) DB {
 
 	databaseUrl := os.Getenv("DATABASE_URL")
+	if h.IsStrEmpty(databaseUrl) {
+		log.Fatal("DATABASE_URL is not set")
+	}
 	var dialector gorm.Dialector
 	if strings.HasPrefix(databaseUrl, "postgres") {
 		dialector = postgres.Open(databaseUrl)

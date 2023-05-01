@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-func initSentry(dsn string, release string) {
+func initSentry(dsn string, app *AppInfo) {
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn:         dsn,
-		Release:     release,
+		Release:     app.Version,
 		Environment: os.Getenv("ENV"),
 		Debug:       os.Getenv("ENV") != "production",
 	})

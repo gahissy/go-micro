@@ -15,6 +15,11 @@ type App struct {
 	env       *Env
 }
 
+type AppInfo struct {
+	Name    string
+	Version string
+}
+
 type Auth struct {
 	Id            string
 	Role          string
@@ -27,7 +32,8 @@ type Service interface {
 }
 
 type Env struct {
-	DB DB
+	DB  DB
+	App *AppInfo
 }
 
 type Ctx struct {
