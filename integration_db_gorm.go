@@ -3,7 +3,6 @@ package micro
 import (
 	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"os"
 	"strings"
@@ -102,8 +101,8 @@ func useGorm(config DatabaseConfig) DB {
 	var dialector gorm.Dialector
 	if strings.HasPrefix(databaseUrl, "postgres") {
 		dialector = postgres.Open(databaseUrl)
-	} else if strings.HasSuffix(databaseUrl, ".db") {
-		dialector = sqlite.Open(databaseUrl)
+		// }else if strings.HasSuffix(databaseUrl, ".db") {
+		//	dialector = sqlite.Open(databaseUrl)
 	} else {
 		panic("unknown database type: " + databaseUrl)
 	}
