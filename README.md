@@ -1,2 +1,2 @@
-# gro-micro
+# go-micro
 go-micro
