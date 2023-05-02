@@ -62,11 +62,29 @@ func NewEchoRouter(env *Env) Router {
 		SigningKey: []byte(os.Getenv("ENCRYPTION_KEY")),
 		ContextKey: "user",
 		Skipper: func(c echo.Context) bool {
+			path := h.NormalizeUri(c.Request().RequestURI)
 			//TODO: make this configurable
-			return c.Request().Method == "OPTIONS" ||
-				strings.HasPrefix(c.Path(), "/swagger/") ||
-				c.Path() == "/status" || c.Path() == "/" || c.Path() == "/auth" ||
-				strings.HasPrefix(c.Path(), "/pub/")
+			if c.Request().Method == "OPTIONS" {
+				return true // preflight request
+			}
+			if strings.HasSuffix(path, ".ico") {
+				return true
+			}
+			if strings.HasPrefix(path, "/swagger/") {
+				return true // swagger resources
+			}
+			if path == "/status" || path == "/" {
+				return true // healthcheck and api info
+			}
+			if path == "/auth" {
+				return true // authe request
+			}
+
+			if strings.HasPrefix(path, "/pub/") {
+				return true // public resources
+			}
+
+			return false
 		},
 		SuccessHandler: func(c echo.Context) {
 			user := c.Get("user")
@@ -241,6 +259,9 @@ func checkPermission(auth *Auth, permissions ...string) {
 		return
 	}
 	if !auth.Authenticated {
+		if h.Contains(permissions, core.Anonymous) {
+			return
+		}
 		panic(echo.NewHTTPError(http.StatusForbidden, "permission.denied"))
 	}
 	if auth.Role == core.Admin {
