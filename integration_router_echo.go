@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type routerImpl struct {
@@ -163,10 +164,7 @@ func (r *routeGroupImpl) handle(method string, path string, cb func(ctx RequestC
 			},
 		}
 		res, err := cb(requestContext)
-		if err != nil {
-			return err
-		}
-		return c.JSON(http.StatusOK, res)
+		return handleResponse(c, res, err)
 	})
 }
 
@@ -205,11 +203,7 @@ func (r *routerImpl) handle(method string, path string, cb func(ctx RequestConte
 				},
 			}
 			res, err := cb(rctw)
-			if err != nil {
-				return err
-			}
-
-			return c.JSON(http.StatusOK, res)
+			return handleResponse(c, res, err)
 		})
 }
 
@@ -273,4 +267,34 @@ func checkPermission(auth *Auth, permissions ...string) {
 	if h.IsStrEmpty(auth.Role) || !h.Contains(permissions, auth.Role) {
 		panic(echo.NewHTTPError(http.StatusForbidden, "permission.denied"))
 	}
+}
+
+func handleResponse(c echo.Context, res interface{}, err error) error {
+	if err != nil {
+		if ferr, ok := err.(*h.FunctionalError); ok {
+			// This is a FunctionalError, you can access the error code and message
+			fmt.Printf("Functional error with code %d: %s\n", ferr.Code, ferr.Message)
+			code := ferr.Code
+			if code == 0 {
+				ferr.Code = http.StatusBadRequest
+			}
+			return c.JSON(code, ferr)
+		}
+
+		if ferr, ok := err.(*h.ForbiddenError); ok {
+			// This is a FunctionalError, you can access the error code and message
+			return c.JSON(http.StatusBadRequest, ferr)
+		}
+		if ferr, ok := err.(*h.TechnicalError); ok {
+			// This is a FunctionalError, you can access the error code and message
+			return c.JSON(http.StatusInternalServerError, ferr)
+		}
+		return c.JSON(500, h.Map{
+			"error": err.Error(),
+			"kind":  "technical",
+			"time":  time.Now().UTC(),
+		})
+	}
+	return c.JSON(http.StatusOK, res)
+
 }
