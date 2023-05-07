@@ -18,6 +18,7 @@ type Router interface {
 	Group(path string, roles ...string) RouteGroup
 	Start(port ...string)
 	Handler() http.Handler
+	AddPublicRoute(path ...string)
 }
 
 type RequestContext interface {

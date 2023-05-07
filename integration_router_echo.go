@@ -18,7 +18,8 @@ import (
 
 type routerImpl struct {
 	Router
-	engine *echo.Echo
+	engine       *echo.Echo
+	publicRoutes []string
 }
 
 type routerRequestContextImpl struct {
@@ -35,7 +36,13 @@ const EnvKey = "env"
 const AuthKey = "auth"
 
 func NewEchoRouter(env *Env) Router {
+
 	e := echo.New()
+
+	impl := &routerImpl{
+		engine:       e,
+		publicRoutes: []string{},
+	}
 	if os.Getenv("ENV") != "production" {
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 			Format: "method=${method}, uri=${uri}, status=${status}\n",
@@ -76,12 +83,16 @@ func NewEchoRouter(env *Env) Router {
 			if path == "/status" || path == "/" {
 				return true // healthcheck and api info
 			}
-			if path == "/auth" {
-				return true // authe request
-			}
-
 			if strings.HasPrefix(path, "/pub/") {
 				return true // public resources
+			}
+			if path == "/auth" {
+				return true // auth request
+			}
+			for _, r := range impl.publicRoutes {
+				if strings.EqualFold(path, r) {
+					return true
+				}
 			}
 
 			return false
@@ -103,7 +114,11 @@ func NewEchoRouter(env *Env) Router {
 		Level: 5,
 	}))
 
-	return &routerImpl{engine: e}
+	return impl
+}
+
+func (r *routerImpl) AddPublicRoute(routes ...string) {
+	r.publicRoutes = append(r.publicRoutes, routes...)
 }
 
 func (r *routerImpl) Handler() http.Handler {
@@ -273,11 +288,7 @@ func handleResponse(c echo.Context, res interface{}, err error) error {
 		if ferr, ok := err.(*h.FunctionalError); ok {
 			// This is a FunctionalError, you can access the error code and message
 			fmt.Printf("Functional error with code %d: %s\n", ferr.Code, ferr.Message)
-			code := ferr.Code
-			if code == 0 {
-				ferr.Code = http.StatusBadRequest
-			}
-			return c.JSON(code, ferr)
+			return c.JSON(http.StatusBadRequest, ferr)
 		}
 
 		if ferr, ok := err.(*h.ForbiddenError); ok {
@@ -287,6 +298,10 @@ func handleResponse(c echo.Context, res interface{}, err error) error {
 		if ferr, ok := err.(*h.TechnicalError); ok {
 			// This is a FunctionalError, you can access the error code and message
 			return c.JSON(http.StatusInternalServerError, ferr)
+		}
+		if ferr, ok := err.(*h.UnauthorizedError); ok {
+			// This is a FunctionalError, you can access the error code and message
+			return c.JSON(http.StatusUnauthorized, ferr)
 		}
 		return c.JSON(500, h.Map{
 			"error": err.Error(),

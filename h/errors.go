@@ -3,7 +3,7 @@ package h
 import "fmt"
 
 type FunctionalError struct {
-	Code    int    `json:"code,omitempty"`
+	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -11,8 +11,12 @@ func (e *FunctionalError) Error() string {
 	return fmt.Sprintf("FunctionalError %d: %s", e.Code, e.Message)
 }
 
-func NewFunctionalError(message string) error {
-	return &FunctionalError{Message: message}
+func NewFunctionalError(message string, code ...string) error {
+	if len(code) > 0 {
+		return &FunctionalError{Code: code[0], Message: message}
+	} else {
+		return &FunctionalError{Message: message}
+	}
 }
 
 /// ----------------------------------------------------------------------------------------------------------------
@@ -27,6 +31,21 @@ func (e *ForbiddenError) Error() string {
 
 func NewForbiddenError(message string) error {
 	return &ForbiddenError{Message: message}
+}
+
+/// ----------------------------------------------------------------------------------------------------------------
+
+type UnauthorizedError struct {
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func (e *UnauthorizedError) Error() string {
+	return fmt.Sprintf("FunctionalError %s", e.Message)
+}
+
+func NewUnauthorizedError(code string, message string) error {
+	return &UnauthorizedError{Code: code, Message: message}
 }
 
 /// ----------------------------------------------------------------------------------------------------------------

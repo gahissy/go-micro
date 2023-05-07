@@ -73,3 +73,7 @@ func (a *App) AddRoutes(routes []func(r Router)) {
 		route(a.router)
 	}
 }
+
+func (a *App) AddPublicRoute(path ...string) {
+	a.router.AddPublicRoute(path...)
+}
