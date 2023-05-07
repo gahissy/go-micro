@@ -2,7 +2,6 @@ package micro
 
 import (
 	"fmt"
-	"gahissy/studio/app/core"
 	"github.com/gahissy/go-micro/h"
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/go-playground/validator/v10"
@@ -210,7 +209,7 @@ func (r *routerImpl) handle(method string, path string, cb func(ctx RequestConte
 func (r *routerImpl) Group(path string, permissions ...string) RouteGroup {
 	group := r.engine.Group(h.NormalizeUri(path))
 
-	if permissions != nil && len(permissions) > 0 && !h.Contains(permissions, core.Authenticated) {
+	if permissions != nil && len(permissions) > 0 && !h.Contains(permissions, RoleAuthenticated) {
 		group.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				auth := c.Get(AuthKey).(*Auth)
@@ -253,15 +252,15 @@ func checkPermission(auth *Auth, permissions ...string) {
 		return
 	}
 	if !auth.Authenticated {
-		if h.Contains(permissions, core.Anonymous) {
+		if h.Contains(permissions, RoleAnonymous) {
 			return
 		}
 		panic(echo.NewHTTPError(http.StatusForbidden, "permission.denied"))
 	}
-	if auth.Role == core.Admin {
+	if auth.Role == RoleAdmin {
 		return
 	}
-	if h.Contains(permissions, core.Authenticated) {
+	if h.Contains(permissions, RoleAuthenticated) {
 		return
 	}
 	if h.IsStrEmpty(auth.Role) || !h.Contains(permissions, auth.Role) {
