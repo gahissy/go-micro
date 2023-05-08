@@ -266,6 +266,9 @@ func checkPermission(auth *Auth, permissions ...string) {
 	if len(permissions) == 0 {
 		return
 	}
+	if len(permissions) == 1 && permissions[0] == "*" {
+		return
+	}
 	if !auth.Authenticated {
 		if h.Contains(permissions, RoleAnonymous) {
 			return
