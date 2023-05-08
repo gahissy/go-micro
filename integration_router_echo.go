@@ -90,7 +90,7 @@ func NewEchoRouter(env *Env) Router {
 				return true // auth request
 			}
 			for _, r := range impl.publicRoutes {
-				if strings.EqualFold(path, r) {
+				if strings.EqualFold(path, h.NormalizeUri(r)) {
 					return true
 				}
 			}
