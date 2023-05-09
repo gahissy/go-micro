@@ -63,6 +63,13 @@ func (a *App) AddWorkers(workers []*Worker) {
 		}
 	}
 }
+func (a *App) Seed(seeders ...func(env *Env) error) {
+	for _, seed := range seeders {
+		if err := seed(a.env); err != nil {
+			log.Fatalf("failed to schedule scheduler: %s", err)
+		}
+	}
+}
 
 func (a *App) WithRouter(cb func(r Router)) {
 	cb(a.router)
