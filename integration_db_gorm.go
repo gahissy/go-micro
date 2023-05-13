@@ -3,10 +3,8 @@ package micro
 import (
 	"github.com/gahissy/go-micro/h"
 	"github.com/pressly/goose/v3"
-	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 	"strings"
 )
 
@@ -77,7 +75,7 @@ func (r *GormDBAdapter) Save(model interface{}) error {
 	return res.Error
 }
 
-func (r *GormDBAdapter) Updates(model interface{}, values map[string]interface{}) error {
+func (r *GormDBAdapter) Patch(model interface{}, values map[string]interface{}) error {
 	res := r.db.Model(model).Updates(values)
 	return res.Error
 }
@@ -92,17 +90,15 @@ func (r *GormDBAdapter) UpdateRaw(query string, values ...interface{}) (int64, e
 	res := r.db.Raw(query, values...).Scan(&count)
 	return count, res.Error
 }
+
 func (r *GormDBAdapter) UpdateColumn(model interface{}, column string, value interface{}) error {
 	res := r.db.Model(model).Update(column, value)
 	return res.Error
 }
 
-func useGorm(config DatabaseConfig) DB {
+func useGorm(config DbConfig) DB {
 
-	databaseUrl := os.Getenv("DATABASE_URL")
-	if h.IsStrEmpty(databaseUrl) {
-		log.Fatal("DATABASE_URL is not set")
-	}
+	databaseUrl := h.RequireEnv("DATABASE_URL")
 	var dialector gorm.Dialector
 	if strings.HasPrefix(databaseUrl, "postgres") {
 		dialector = postgres.Open(databaseUrl)
@@ -124,7 +120,7 @@ func useGorm(config DatabaseConfig) DB {
 	return &GormDBAdapter{db: db}
 }
 
-func applyMigrations(config DatabaseConfig, db *gorm.DB, dialector gorm.Dialector) {
+func applyMigrations(config DbConfig, db *gorm.DB, dialector gorm.Dialector) {
 	goose.SetBaseFS(config.MigrationsFs)
 	if err := goose.SetDialect(dialector.Name()); err != nil {
 		panic(err)

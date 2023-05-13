@@ -1,6 +1,8 @@
 package micro
 
 import (
+	"github.com/gahissy/go-micro/h"
+	"github.com/gahissy/go-micro/ports"
 	"github.com/go-co-op/gocron"
 	"io/fs"
 )
@@ -12,7 +14,7 @@ type Err = error
 type App struct {
 	scheduler *gocron.Scheduler
 	router    Router
-	env       *Env
+	Env       *Env
 }
 
 type AppInfo struct {
@@ -32,8 +34,10 @@ type Service interface {
 }
 
 type Env struct {
-	DB  DB
-	App *AppInfo
+	Profile             string
+	DB                  DB
+	App                 *AppInfo
+	NotificationManager ports.NotificationManager
 }
 
 type Ctx struct {
@@ -43,10 +47,19 @@ type Ctx struct {
 
 type Worker struct {
 	Every  string
-	Handle func(ctx *Env) error
+	Handle func(ctx *Ctx) error
 }
 
-type DatabaseConfig struct {
+type DbConfig struct {
 	MigrationsFs       fs.FS
 	MigrationsLocation string
+	Seeders            []func(ctx *Ctx) error
+}
+
+func (e *Env) SendNotification(notification ports.Notification) error {
+	return e.NotificationManager.Send(notification)
+}
+
+func (e *Env) IsProduction() bool {
+	return h.IsProduction(e.Profile)
 }

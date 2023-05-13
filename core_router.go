@@ -13,12 +13,27 @@ type RouteGroup interface {
 	DELETE(path string, cb func(ctx RequestContext) (Any, error))
 }
 
+type CorsConfig struct {
+	Enabled bool
+}
+
+type JwtConfig struct {
+	Secret string
+}
+
+type RouterConfig struct {
+	Cors         *CorsConfig
+	JwtConfig    *JwtConfig
+	PublicRoutes []string
+	Routes       []func(r Router)
+}
+
 type Router interface {
 	RouteGroup
 	Group(path string, roles ...string) RouteGroup
 	Start(port ...string)
 	Handler() http.Handler
-	AddPublicRoute(path ...string)
+	//AddPublicRoute(path ...string)
 }
 
 type RequestContext interface {
@@ -51,7 +66,9 @@ func Handle3[K interface{}](role string, input K, cb func(input K, ctx *Ctx) (An
 			ctx.CheckPermission(role)
 		}
 		cloned := input
-		ctx.ShouldBind(&cloned)
+		if err := ctx.Bind(&cloned); err != nil {
+			return nil, err
+		}
 		return cb(cloned, ctx.Ctx())
 	}
 }

@@ -27,3 +27,11 @@ func NormalizeUri(path string) string {
 	result := "/" + RemoveLeadingSlash(RemoveTrailingSlash(path))
 	return result
 }
+
+func JoinUrl(parts ...string) string {
+	var result string
+	for _, part := range parts {
+		result = RemoveSlashes(result) + "/" + RemoveSlashes(part)
+	}
+	return NormalizeUri(result)
+}

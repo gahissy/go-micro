@@ -21,6 +21,20 @@ func NewFunctionalError(message string, code ...string) error {
 
 /// ----------------------------------------------------------------------------------------------------------------
 
+type ResourceNotFoundError struct {
+	Message string `json:"message,omitempty"`
+}
+
+func (e *ResourceNotFoundError) Error() string {
+	return fmt.Sprintf("FunctionalError %d", e.Message)
+}
+
+func NewResourceNotFoundError(message string) error {
+	return &ResourceNotFoundError{Message: message}
+}
+
+/// ----------------------------------------------------------------------------------------------------------------
+
 type ForbiddenError struct {
 	Message string `json:"message,omitempty"`
 }
