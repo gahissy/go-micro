@@ -342,7 +342,7 @@ func handleResponse(c echo.Context, res interface{}, err error) error {
 			return c.JSON(http.StatusNotFound, ferr)
 		}
 		if eerr, ok := err.(*echo.HTTPError); ok {
-			return c.JSON(eerr.Code, eerr)
+			return c.JSON(eerr.Code, eerr.Message)
 		}
 		return c.JSON(500, h.Map{
 			"error": err.Error(),

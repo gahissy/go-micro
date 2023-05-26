@@ -64,9 +64,9 @@ func (r *GormDBAdapter) Create(model interface{}) error {
 	return res.Error
 }
 
-func (r *GormDBAdapter) CountBy(model interface{}, query interface{}, conds ...interface{}) (int64, error) {
+func (r *GormDBAdapter) CountBy(model interface{}, conds ...interface{}) (int64, error) {
 	var value int64
-	res := r.db.Model(model).Where(query, conds...).Count(&value)
+	res := r.db.Model(model).Where(conds[0], conds[1:]...).Count(&value)
 	return value, res.Error
 }
 

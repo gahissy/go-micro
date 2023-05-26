@@ -23,7 +23,7 @@ type DB interface {
 
 	Create(model interface{}) error
 
-	CountBy(model interface{}, query interface{}, conds ...interface{}) (int64, error)
+	CountBy(model interface{}, conds ...interface{}) (int64, error)
 
 	Save(model interface{}) error
 
@@ -59,18 +59,27 @@ func (r *Repo[T]) FindById(id string) *T {
 	return &entity
 }
 
-func (r *Repo[T]) FindBy(criteria string, params ...interface{}) (*T, error) {
+func (r *Repo[T]) FindBy(params ...interface{}) (*T, error) {
 	var entity T
-	err := r.DB.FindBy(&entity, criteria, params)
+	err := r.DB.FindBy(&entity, params...)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 	return &entity, err
 }
 
-func (r *Repo[T]) CountBy(criteria string, params ...interface{}) (int64, error) {
+func (r *Repo[T]) FirstBy(params ...interface{}) (*T, error) {
 	var entity T
-	return r.DB.CountBy(entity, criteria, params)
+	err := r.DB.First(&entity, params...)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &entity, err
+}
+
+func (r *Repo[T]) CountBy(params ...interface{}) (int64, error) {
+	var entity T
+	return r.DB.CountBy(entity, params...)
 }
 
 func (r *Repo[T]) FindAll(orderBy string) ([]*T, error) {

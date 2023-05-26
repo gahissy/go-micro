@@ -80,12 +80,12 @@ func CreatePasetoToken(secret []byte, issuer string, audience string, subject st
 
 }
 
-func CreateJwtToken(secret string, audience string, subject string) (string, error) {
+func CreateJwtToken(secret string, audience string, subject string, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["sub"] = subject
 	claims["role"] = audience
 	claims["iat"] = time.Now().Unix()
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["exp"] = time.Now().Add(duration).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(secret))
